@@ -22,6 +22,14 @@ public class Email {
         this.bccs = bccs;
     }
 
+    public Email(String to, String subject, String body) {
+        this.to = to;
+        this.subject = subject;
+        this.body = body;
+        this.ccs = new String[]{};
+        this.bccs = new String[]{};
+    }
+
     public Email(){}
 
     public Mail toMail() {
@@ -42,6 +50,7 @@ public class Email {
 
     private Personalization addCcs(String[] ccs) {
         Personalization p = new Personalization();
+
         Arrays.stream(ccs).forEach(cc -> p.addCc(new com.sendgrid.Email(cc)));
         return p;
     }
@@ -70,6 +79,26 @@ public class Email {
 
     public void setBccs(String[] bccs) {
         this.bccs = bccs;
+    }
+
+    public String getTo() {
+        return to;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public String[] getCcs() {
+        return ccs;
+    }
+
+    public String[] getBccs() {
+        return bccs;
     }
 
     @Override

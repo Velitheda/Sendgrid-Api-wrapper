@@ -11,7 +11,7 @@ public class EmailServiceApplicationTests {
 
 	@Test
 	public void contextLoads() {
-		
+
 	}
 
 }
