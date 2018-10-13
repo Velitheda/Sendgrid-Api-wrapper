@@ -17,6 +17,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -51,10 +52,10 @@ public class SendControllerTest {
         String json = mapper.writeValueAsString(ccEmail);
 
         when(service.sendRequest(any(Request.class))).thenReturn(new Response());
-        this.mockMvc.perform(post("/v1/send", json)
+        this.mockMvc.perform(post("/v1/send")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json)
-        ).andExpect(status().isOk());
+        ).andExpect(status().isNoContent());
     }
 
     @Test
@@ -62,10 +63,10 @@ public class SendControllerTest {
         String json = mapper.writeValueAsString(email);
 
         when(service.sendRequest(any(Request.class))).thenReturn(new Response());
-        this.mockMvc.perform(post("/v1/send", json)
+        this.mockMvc.perform(post("/v1/send")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json)
-        ).andExpect(status().isOk());
+        ).andExpect(status().isNoContent());
     }
 
     @Test
@@ -75,9 +76,28 @@ public class SendControllerTest {
         String json = mapper.writeValueAsString(email);
 
         when(service.sendRequest(any(Request.class))).thenReturn(new Response());
-        this.mockMvc.perform(post("/v1/send", json)
+        this.mockMvc.perform(post("/v1/send")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json)
-        ).andExpect(status().isOk());
+        ).andDo(print()).andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void shouldReturnBadRequestOnIncorrectData() throws Exception {
+        email.setTo(new String[]{});
+        String json = mapper.writeValueAsString(email);
+
+        this.mockMvc.perform(post("/v1/send")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json)
+        ).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldReturnBadRequestOnInvalidJson() throws Exception {
+        this.mockMvc.perform(post("/v1/send")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{{[[")
+        ).andDo(print()).andExpect(status().isBadRequest());
     }
 }
