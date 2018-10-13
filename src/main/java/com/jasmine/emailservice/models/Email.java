@@ -5,29 +5,30 @@ import com.sendgrid.Mail;
 import com.sendgrid.Personalization;
 
 import java.util.Arrays;
+import java.util.ResourceBundle;
 
 public class Email {
 
-    private String to;
+    private String[] to;
     private String subject;
     private String body;
-    private String[] ccs;
-    private String[] bccs;
+    private String[] cc = new String[]{};
+    private String[] bcc = new String[]{};
 
-    public Email(String to, String subject, String body, String[] ccs, String [] bccs) {
+    public Email(String[] to, String subject, String body, String[] cc, String [] bcc) {
         this.to = to;
         this.subject = subject;
         this.body = body;
-        this.ccs = ccs;
-        this.bccs = bccs;
+        this.cc = cc;
+        this.bcc = bcc;
     }
 
-    public Email(String to, String subject, String body) {
+    public Email(String[] to, String subject, String body) {
         this.to = to;
         this.subject = subject;
         this.body = body;
-        this.ccs = new String[]{};
-        this.bccs = new String[]{};
+        this.cc = new String[]{};
+        this.bcc = new String[]{};
     }
 
     public Email(){}
@@ -35,33 +36,36 @@ public class Email {
     public Mail toMail() {
         Content content = new Content("text/html", body);
 
-        com.sendgrid.Email fromEmail = new com.sendgrid.Email("test@example.com");
-        com.sendgrid.Email toEmail = new com.sendgrid.Email(this.to);
-        Mail mail = new Mail(fromEmail, subject, toEmail, content);
+        com.sendgrid.Email fromEmail = new com.sendgrid.Email(getFromEmail());
 
-        Personalization ccsPersonalisation = addCcs(ccs);
-        mail.addPersonalization(ccsPersonalisation);
+        if(to.length == 0){
+            throw new IllegalArgumentException("To array must not be empty");
+        }
+        com.sendgrid.Email firstTo = new com.sendgrid.Email(to[0]);
+        Mail mail = new Mail(fromEmail, subject, firstTo, content);
 
-        Personalization bccsPersonalisation = addBccs(bccs);
-        mail.addPersonalization(bccsPersonalisation);
+        Personalization p = createPersonalization();
+        mail.addPersonalization(p);
 
         return mail;
     }
 
-    private Personalization addCcs(String[] ccs) {
+    private String getFromEmail() {
+        ResourceBundle rb = ResourceBundle.getBundle("application");
+        return rb.getString("from_email");
+    }
+
+    private Personalization createPersonalization() {
         Personalization p = new Personalization();
 
-        Arrays.stream(ccs).forEach(cc -> p.addCc(new com.sendgrid.Email(cc)));
+        // SendGrid de-dupes the to array on its servers, so we won't send the email twice to the first 'to'.
+        Arrays.stream(to).forEach(to -> p.addTo(new com.sendgrid.Email(to)));
+        Arrays.stream(cc).forEach(cc -> p.addCc(new com.sendgrid.Email(cc)));
+        Arrays.stream(bcc).forEach(bcc -> p.addBcc(new com.sendgrid.Email(bcc)));
         return p;
     }
 
-    private Personalization addBccs(String[] bccs) {
-        Personalization p = new Personalization();
-        Arrays.stream(bccs).forEach(bcc -> p.addBcc(new com.sendgrid.Email(bcc)));
-        return p;
-    }
-
-    public void setTo(String to) {
+    public void setTo(String[] to) {
         this.to = to;
     }
 
@@ -73,15 +77,15 @@ public class Email {
         this.body = body;
     }
 
-    public void setCcs(String[] ccs) {
-        this.ccs = ccs;
+    public void setCc(String[] cc) {
+        this.cc = cc;
     }
 
-    public void setBccs(String[] bccs) {
-        this.bccs = bccs;
+    public void setBcc(String[] bcc) {
+        this.bcc = bcc;
     }
 
-    public String getTo() {
+    public String[] getTo() {
         return to;
     }
 
@@ -93,22 +97,22 @@ public class Email {
         return body;
     }
 
-    public String[] getCcs() {
-        return ccs;
+    public String[] getCc() {
+        return cc;
     }
 
-    public String[] getBccs() {
-        return bccs;
+    public String[] getBcc() {
+        return bcc;
     }
 
     @Override
     public String toString() {
         return "SimpleEmail{" +
-                "to='" + to + '\'' +
+                "to='" + Arrays.toString(to) + '\'' +
                 ", subject='" + subject + '\'' +
                 ", body='" + body + '\'' +
-                ", ccs=" + Arrays.toString(ccs) +
-                ", bccs=" + Arrays.toString(bccs) +
+                ", cc=" + Arrays.toString(cc) +
+                ", bcc=" + Arrays.toString(bcc) +
                 '}';
     }
 }

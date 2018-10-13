@@ -29,39 +29,53 @@ public class SendControllerTest {
     @MockBean
     private SendService service;
 
-    private String testAddress = "test@example.com";
+    private String toAddress = "to@example.com";
+    private String ccAddress = "cc@example.com";
     private ObjectMapper mapper = new ObjectMapper();
+
+    private Email email = new Email(
+            new String[]{ toAddress },
+            "The subject",
+            "The body"
+    );
+    private Email ccEmail = new Email(
+            new String[]{ toAddress },
+            "The subject",
+            "The body",
+            new String[]{ ccAddress },
+            new String[]{}
+    );
 
     @Test
     public void shouldSendRequestToMailService() throws Exception {
-        Email email = new Email(
-                testAddress,
-                "The subject",
-                "The body",
-                new String[]{ testAddress },
-                new String[]{}
-        );
-        String json = mapper.writeValueAsString(email);
+        String json = mapper.writeValueAsString(ccEmail);
 
         when(service.sendRequest(any(Request.class))).thenReturn(new Response());
-        this.mockMvc.perform(post("/send", json)
+        this.mockMvc.perform(post("/v1/send", json)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json)
         ).andExpect(status().isOk());
     }
 
     @Test
-    public void shouldHandleNoCcsAndBccs() throws Exception {
-        Email email = new Email(
-                testAddress,
-                "The subject",
-                "The body"
-        );
+    public void shouldHandleNullCcsAndBccs() throws Exception {
+        String json = mapper.writeValueAsString(email);
+
+        when(service.sendRequest(any(Request.class))).thenReturn(new Response());
+        this.mockMvc.perform(post("/v1/send", json)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json)
+        ).andExpect(status().isOk());
+    }
+
+    @Test
+    public void shouldHandleCcsAndNullBccs() throws Exception {
+        email.setCc(new String[]{ ccAddress });
 
         String json = mapper.writeValueAsString(email);
 
         when(service.sendRequest(any(Request.class))).thenReturn(new Response());
-        this.mockMvc.perform(post("/send", json)
+        this.mockMvc.perform(post("/v1/send", json)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json)
         ).andExpect(status().isOk());

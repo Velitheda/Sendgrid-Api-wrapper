@@ -1,6 +1,5 @@
 package com.jasmine.emailservice.services;
 
-
 import com.sendgrid.Request;
 import com.sendgrid.Response;
 import com.sendgrid.SendGrid;
